@@ -2,8 +2,9 @@ import json
 import xmltodict
 import mysql.connector
 from mysql.connector import errorcode
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 import requests
+import re
 
 
 # Creates a connection to the db. Returns connector or None if failed to connect
@@ -60,5 +61,26 @@ def get_file_paths(code, date = '', file_type = 'all'):
         path = str(content[start:end]).replace('\\\\', '\\')
         path = fr"{host}/{path}"
         file_paths.append(path)
-        
+    
     return file_paths
+
+
+# Returns a list ot tuples structured as (filetype, path).
+def get_price_types(file_paths, price_type=['all'], all_price_types=[]): #load_full_price=False, start_from_full_price_file=False,
+    ALL_PRICE_TYPES_DEF = ['Price', 'PriceFull', 'Promo', 'PromoFull']
+    all_price_types = ALL_PRICE_TYPES_DEF if not all_price_types else all_price_types
+    is_all_type = 'all' in price_type
+    filename_regex = r'/([^/]*)(/)?$'
+    if is_all_type:
+        price_type = all_price_types
+    filetype_regex = "({})".format('|'.join(price_type))
+    
+    paths=[]
+    for path in file_paths:
+        filename = re.compile(filename_regex).search(path)
+        filetype = re.compile(filetype_regex).search(filename[1])
+        if not filetype:
+            continue
+        paths.append((filetype[1], path))
+    
+    return paths
