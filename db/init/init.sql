@@ -8,7 +8,7 @@ USE app;
 
 CREATE TABLE CurrentPrices(
     pid         VARCHAR(255),
-    cid         INT,
+    cid         VARCHAR(255),
     bid         INT,
     price       DECIMAL(8,2),
     PRIMARY KEY (pid, cid, bid)
@@ -16,7 +16,7 @@ CREATE TABLE CurrentPrices(
 
 CREATE TABLE PriceHistory(
     pid         VARCHAR(255),
-    cid         INT,
+    cid         VARCHAR(255),
     bid         INT,
     update_date DATE,
     price       DECIMAL(8,2),
@@ -25,7 +25,7 @@ CREATE TABLE PriceHistory(
 
 CREATE TABLE Products(
     pid         VARCHAR(255),
-    cid         INT,
+    cid         VARCHAR(255),
     bid         INT,
     pname       VARCHAR(255),
     manufacturer VARCHAR(255),
@@ -34,12 +34,13 @@ CREATE TABLE Products(
 
 CREATE TABLE Branches(
     bid         INT,
+    cid         VARCHAR(255),
     bname       VARCHAR(255),
-    PRIMARY KEY (bid)
+    PRIMARY KEY (bid, cid)
 );
 
 CREATE TABLE Chains(
-    cid         INT,
+    cid         VARCHAR(255),
     cname       VARCHAR(255),
     PRIMARY KEY (cid)
 );

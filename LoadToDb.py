@@ -53,15 +53,16 @@ def update_price_history_query(chain_id, branch_id, date, product):
     date = datetime.strftime(date, date_format)
     table_name = "PriceHistory"
     price_history_keys = "(pid, cid, bid, price, update_date)"
-    values = f"'{product['ItemCode']}', {chain_id}, {branch_id}, {product['ItemPrice']}, '{date}'"
-
+    values = f"{product['ItemCode']}, {chain_id}, {branch_id}, {product['ItemPrice']}, '{date}'"
+    
     # gives 1 if last added price is equal to the new price, 0 if not.
     last_price_equal = f"SELECT COUNT(*) FROM {table_name} " \
-                       f"WHERE pid = '{product['ItemCode']}' " \
+                       f"WHERE pid = {product['ItemCode']} " \
                        f"AND cid = {str(chain_id)} " \
                        f"AND bid = {str(branch_id)} " \
-                       f"AND price = {product['ItemPrice']} " \
-                       f"AND update_date <= '{date}' " \
+                       f"AND ((price = {product['ItemPrice']} " \
+                            f"AND update_date < '{date}') " \
+                            f"OR update_date = '{date}')" \
                        f"ORDER BY update_date DESC " \
                        f"LIMIT 1"
     # query for adding new log to the table if price has changed
@@ -97,6 +98,10 @@ def update_product_query(chain_id, branch_id, product):
 def get_file_paths(code, date = '', file_type = 'all'):
     host = 'http://matrixcatalog.co.il'
     api = 'http://matrixcatalog.co.il/NBCompetitionRegulations.aspx'
+
+    if date:
+        date_format = r'%d/%m/%Y'
+        date = datetime.strftime(date, date_format)
 
     p = {'code': code, 'date': date, 'filetype': file_type}
     r = requests.get(api, allow_redirects=True, params=p)
@@ -157,11 +162,17 @@ def get_products_from_xml(path):
 def update_price(chain_id, branch_id, date, products, current_price = True, price_history = True):
     queries = []
     for product in products:
+        
         args = (chain_id, branch_id, date, product)
         queries.append(update_price_history_query(*args))
         args = (chain_id, branch_id, product)
         queries.append(update_current_price_query(*args))
         queries.append(update_product_query(*args))
+
+    with open(r'tmp/que.txt', 'w') as f:
+        x='\n'.join(queries)
+        f.write(x)
+
 
     exec_queries(queries)
 
@@ -171,12 +182,39 @@ def update_from_files(chain_id, branch_id, date, price_files):
         products = get_products_from_xml(f.path)
 
         args = (chain_id, branch_id, date, products)
+        try:
 
-        if f.type == FULLPRICE:
-            update_price(*args)
-        elif f.type == PRICE:
-            update_price(*args)
-        elif f.type == FULLPROMO:
-            pass
-        elif f.type == PROMO:
-            pass
+            if f.type == FULLPRICE:
+                update_price(*args)
+            elif f.type == PRICE:
+                update_price(*args)
+            elif f.type == FULLPROMO:
+                pass
+            elif f.type == PROMO:
+                pass
+        except:
+            print(f.path)
+
+
+# Iterator of dates
+def daterange(start_date, end_date):
+    for n in range(int((end_date - start_date).days)):
+        yield start_date + timedelta(n) 
+
+
+def update(chain_id, branch_id, start_date, end_date, sub_chain='001'):
+    date_format = '%d/%m/%Y'
+
+    start_date = datetime.strptime(start_date, date_format)
+    end_date = datetime.strptime(end_date, date_format)
+    for single_date in daterange(start_date, end_date): #TODO add +1
+        code = str(chain_id) + str(sub_chain) + str(branch_id)
+        file_paths = get_file_paths(code, date=single_date)
+        file_paths.reverse()
+        pricefiles = get_price_types(file_paths)
+        update_from_files(chain_id, branch_id, single_date, pricefiles)
+        
+
+
+    
+    
