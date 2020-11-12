@@ -5,6 +5,7 @@ import mysql.connector
 import xmltodict
 import requests
 import json
+import gzip
 import re
 
 PRICE, FULLPRICE, PROMO, FULLPROMO = 'Price', 'PriceFull', 'Promo', 'PromoFull' 
@@ -48,18 +49,20 @@ def exec_queries(query_list):
 
 # creates a query for adding a new price log to PriceHistory table
 def update_price_history_query(chain_id, branch_id, date, product):
+    date_format = r'%Y-%m-%d'
+    date = datetime.strftime(date, date_format)
     table_name = "PriceHistory"
     price_history_keys = "(pid, cid, bid, price, update_date)"
-    values = str((product['ItemCode'], chain_id, branch_id, product['ItemPrice'], date))
+    values = f"'{product['ItemCode']}', {chain_id}, {branch_id}, {product['ItemPrice']}, '{date}'"
 
     # gives 1 if last added price is equal to the new price, 0 if not.
     last_price_equal = f"SELECT COUNT(*) FROM {table_name} " \
-                       f"WHERE pid = {product['ItemCode']} " \
+                       f"WHERE pid = '{product['ItemCode']}' " \
                        f"AND cid = {str(chain_id)} " \
                        f"AND bid = {str(branch_id)} " \
                        f"AND price = {product['ItemPrice']} " \
-                       f"AND date <= {date} " \
-                       f"ORDER BY date DESC " \
+                       f"AND update_date <= '{date}' " \
+                       f"ORDER BY update_date DESC " \
                        f"LIMIT 1"
     # query for adding new log to the table if price has changed
     query = f"INSERT INTO {table_name} {price_history_keys} " \
@@ -68,17 +71,17 @@ def update_price_history_query(chain_id, branch_id, date, product):
     return query
 
 
-def update_current_price_query(chain_id, branch_id, date, product):
+def update_current_price_query(chain_id, branch_id, product):
     table_name = 'CurrentPrices'
-    curr_price_keys = "(pid, cid, bid, price, update_date)"
-    values = str((product['ItemCode'], chain_id, branch_id, product['ItemPrice'], date))
+    curr_price_keys = "(pid, cid, bid, price)"
+    values = str((product['ItemCode'], chain_id, branch_id, product['ItemPrice']))
 
     query = f"REPLACE INTO {table_name} {curr_price_keys} " \
             f"VALUES {values}; "
     return query
     
 
-def update_product_query(chain_id, branch_id, date, product):
+def update_product_query(chain_id, branch_id, product):
     table_name = 'Products'
     products_keys = "(pid, cid, bid, pname, manufacturer)"
     values = str((product['ItemCode'], chain_id, branch_id, product['ItemName'], product['ManufactureName']))
@@ -138,14 +141,42 @@ def get_price_types(file_paths, select_price_types=['all'], all_price_types=[PRI
     return pricefiles
 
 
-def foo(price_files):
+def get_products_from_xml(path):
+    r = requests.get(path, allow_redirects=True)
+    xml = gzip.decompress(r.content)
+    products = xmltodict.parse(xml, encoding='utf-8')
+
+    if 'Prices' in products:
+        products = products['Prices']['Products']['Product']
+    elif 'Promos' in products:
+        products = products['Promos']['Sales']['Sale']
+
+    return products
+
+
+def update_price(chain_id, branch_id, date, products, current_price = True, price_history = True):
+    queries = []
+    for product in products:
+        args = (chain_id, branch_id, date, product)
+        queries.append(update_price_history_query(*args))
+        args = (chain_id, branch_id, product)
+        queries.append(update_current_price_query(*args))
+        queries.append(update_product_query(*args))
+
+    exec_queries(queries)
+
+
+def update_from_files(chain_id, branch_id, date, price_files):
     for f in price_files:
+        products = get_products_from_xml(f.path)
+
+        args = (chain_id, branch_id, date, products)
+
         if f.type == FULLPRICE:
-            print(f)
+            update_price(*args)
+        elif f.type == PRICE:
+            update_price(*args)
+        elif f.type == FULLPROMO:
+            pass
         elif f.type == PROMO:
             pass
-
-
-
-    
-    
