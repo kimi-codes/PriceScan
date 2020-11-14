@@ -133,8 +133,6 @@ def update(chain_id, branch_id, start_date, end_date, sub_chain='001'):
         update_from_files(chain_id, branch_id, single_date, pricefiles)
         
 
-update('7290696200003', '001', '13/10/2020', '15/10/2020')
-
 
     
     
