@@ -12,16 +12,17 @@ def connect_to_db():
             host='localhost',
             port='3308',
             database='app',
-            auth_plugin='mysql_native_password'
+            auth_plugin='mysql_native_password',
+            autocommit=True
         )
         return db
-    except mysql.connector.Error as err:
-        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+    except mysql.connector.Error as e:
+        if e.errno == errorcode.ER_ACCESS_DENIED_ERROR:
             print("Wrong credentials")
-        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+        elif e.errno == errorcode.ER_BAD_DB_ERROR:
             print("Database does not exist")
         else:
-            print(err)
+            print(e)
     return None
 
 
@@ -30,14 +31,16 @@ def exec_queries(query_list):
     db = connect_to_db()
     if db is None:
         return 0
-    cursor = db.cursor()
+    cursor = db.cursor(buffered=True)
+    result = ''
     for query in query_list:
         cursor.execute(query)
-        db.commit()
+        result = cursor.fetchall()
+        #db.commit()
     
     cursor.close()
     db.close()
-    return 1
+    return result
 
 
 # creates a query for adding a new price log to PriceHistory table
@@ -83,4 +86,11 @@ def update_product_query(chain_id, branch_id, product):
     query = f"REPLACE INTO {table_name} {products_keys} " \
             f"VALUES {values}; "
     return query
+
+
+def get_curr_items(chain_id, branch_id):
+    query = f"SELECT c.pid, c.price, p.pname, p.manufacturer " \
+            f"FROM CurrentPrices c left join Products p on c.pid=p.pid and c.cid=p.cid " \
+            f"WHERE c.cid = {str(chain_id)} AND c.bid = {str(branch_id)}; "
+    return query 
 
