@@ -1,6 +1,7 @@
 from datetime import date, timedelta, datetime
 from mysql.connector import errorcode
 import mysql.connector
+import collections
 
 
 # Creates a connection to the db. Returns connector or None if failed to connect
@@ -32,14 +33,18 @@ def exec_queries(query_list):
     if db is None:
         return 0
     cursor = db.cursor(buffered=True)
-    result = ''
+    result = []
     for query in query_list:
         cursor.execute(query)
-        result = cursor.fetchall()
-        #db.commit()
+        for row in cursor.fetchall():
+            d = collections.OrderedDict()
+            for idx, val in enumerate(cursor.column_names):
+                d[val] = str(row[idx])
+            result.append(d)
     
     cursor.close()
     db.close()
+    print(result)
     return result
 
 
@@ -93,4 +98,5 @@ def get_curr_items(chain_id, branch_id):
             f"FROM CurrentPrices c left join Products p on c.pid=p.pid and c.cid=p.cid " \
             f"WHERE c.cid = {str(chain_id)} AND c.bid = {str(branch_id)}; "
     return query 
+
 
