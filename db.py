@@ -44,7 +44,6 @@ def exec_queries(query_list):
     
     cursor.close()
     db.close()
-    print(result)
     return result
 
 
@@ -100,3 +99,24 @@ def get_curr_items(chain_id, branch_id):
     return query 
 
 
+def get_chains():
+    query = f"SELECT * FROM Chains; "
+    return query 
+
+
+def get_branches(cid):
+    query = f"SELECT * FROM Branches WHERE cid={cid}; "
+    return query 
+
+
+def get_products(cid=None, bid=None):
+    query = f"SELECT * FROM Products; "
+    return query
+
+
+
+def get_price_history(chain_id, branch_id, pid):
+    query = f"SELECT update_date, price " \
+            f"FROM PriceHistory " \
+            f"WHERE cid = {str(chain_id)} AND bid = {str(branch_id)} AND pid = {str(pid)}; "
+    return query 

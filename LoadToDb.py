@@ -5,7 +5,6 @@ import requests
 import json
 import gzip
 import re
-
 import db
 
 
@@ -125,14 +124,12 @@ def update(chain_id, branch_id, start_date, end_date, sub_chain='001'):
 
     start_date = datetime.strptime(start_date, date_format)
     end_date = datetime.strptime(end_date, date_format)
-    for single_date in daterange(start_date, end_date): #TODO add +1
+    for single_date in daterange(start_date, end_date):
         code = str(chain_id) + str(sub_chain) + str(branch_id)
         file_paths = get_file_paths(code, date=single_date)
         file_paths.reverse()
         pricefiles = get_price_types(file_paths)
         update_from_files(chain_id, branch_id, single_date, pricefiles)
         
-
-
-    
+update('7290696200003', '1', '01/12/2020', '02/12/2020')
     
