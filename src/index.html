@@ -1,0 +1,37 @@
+<head></head>
+<body>
+    <div>
+        <form>
+            <label for="chain">Chain: </label>
+            <select id="chain">
+                <option value="7290696200003">7290696200003</option>
+            </select>
+            <label for="branch">Branch: </label>
+            <select id="branch">
+                <option value="1">1</option>
+            </select>
+            <br>
+            <label for="barcode">Barcode:</label>
+            <input type="text" id="barcode" name="barcode">
+            <button type="button" onclick="getPrice(chain.value, branch.value, barcode.value)">Get Price</button>
+        </form>
+    </div>
+    <div id="result"></div>
+</body>
+
+<script>
+    function getPrice(cid, bid, pid) {
+        const call = 'http://127.0.0.1:5000/prices/current/' + [cid, bid, pid].join('/');
+        
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+            if (this.readyState == 4) {
+                document.getElementById("result").innerHTML =
+                this.responseText;
+            }
+        };
+        xhttp.open("GET", call, true);
+        xhttp.send();
+    }
+</script>
+
