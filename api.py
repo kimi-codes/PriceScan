@@ -21,23 +21,26 @@ def get_branches(cid):
 
 
 @app.route('/products')
-#@app.route('/products/<cid>')
-#@app.route('/products/<cid>/<bid>')
+@app.route('/products/<cid>')
+@app.route('/products/<cid>/<bid>')
 def get_products(cid=None, bid=None):
-    data = db.exec_queries([db.get_products()])
+    data = db.exec_queries([db.get_products(cid, bid)])
     return jsonify(data)
 
 
 # current item price across all chains
+@app.route('/prices/current')
+@app.route('/prices/current/all')
 @app.route('/prices/current/all/<pid>')
 def get_price_across_chains(pid):
-    pass
+    data = db.exec_queries([db.get_current_price(pid=pid)])
+    return jsonify(data)
 
 
-
+@app.route('/prices/current/<cid>')
 @app.route('/prices/current/<cid>/<bid>')
 def get_price_in_branch(cid, bid):
-    data = db.exec_queries([db.get_curr_items(cid, bid)])
+    data = db.exec_queries([db.get_current_price(cid=cid, bid=bid)])
     return jsonify(data)
 
 

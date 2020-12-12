@@ -109,10 +109,36 @@ def get_branches(cid):
     return query 
 
 
-def get_products(cid=None, bid=None):
-    query = f"SELECT * FROM Products; "
+def get_products(cid, bid):
+    if cid:
+        item_lst_query = f"SELECT pid " \
+                         f"FROM CurrentPrices " \
+                         f"WHERE cid={cid} "
+        if bid:
+            item_lst_query += f"AND bid={bid}"
+
+        query = f"SELECT * FROM Products " \
+                f"WHERE pid IN ({item_lst_query}); "
+    else:
+        query = f"SELECT * FROM Products; "
+    
     return query
 
+
+def get_current_price(pid=None, cid=None, bid=None):
+    query = f"SELECT * FROM CurrentPrices "
+    conditions = []
+    conditions.extend([f"pid={pid}"] if pid else [])
+    conditions.extend([f"cid={cid}"] if cid else [])
+    conditions.extend([f"bid={bid}"] if bid else [])
+
+    if conditions:
+        query += f"WHERE {conditions.pop()} "
+        for c in conditions:
+            query += f"AND {c} "
+    query += ';'
+
+    return query 
 
 
 def get_price_history(chain_id, branch_id, pid):
