@@ -1,11 +1,13 @@
 from datetime import date, datetime
 from flask import Flask, jsonify
+from flask_cors import CORS
 import db
 import json
 import collections
 
 
 app = Flask('__name__')
+CORS(app)
 
 
 @app.route('/chains')
@@ -39,8 +41,9 @@ def get_price_across_chains(pid):
 
 @app.route('/prices/current/<cid>')
 @app.route('/prices/current/<cid>/<bid>')
-def get_price_in_branch(cid, bid):
-    data = db.exec_queries([db.get_current_price(cid=cid, bid=bid)])
+@app.route('/prices/current/<cid>/<bid>/<pid>')
+def get_price_in_branch(pid, cid, bid):
+    data = db.exec_queries([db.get_current_price(pid, cid, bid)])
     return jsonify(data)
 
 

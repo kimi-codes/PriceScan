@@ -90,7 +90,6 @@ def update_price(chain_id, branch_id, date, products, current_price = True, pric
         x='\n'.join(queries)
         f.write(x)
 
-
     db.exec_queries(queries)
 
 
