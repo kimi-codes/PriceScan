@@ -1,6 +1,10 @@
 import json
+import os
 
-FILENAME = '../data/PriceFileData.txt'
+
+
+FILENAME = 'PriceFileData.txt'
+PATH = 'data'
 
 '''
 api:                the path where all the price file paths can be found.
@@ -41,5 +45,11 @@ chains = {
     'shufersal': shufersal,
 }
 
-with open(FILENAME, 'w') as f:
-    json.dump(chains, f)
+if __name__ == '__main__':
+    folder_path = os.path.join(os.path.dirname(__file__),'..', PATH) 
+    if not os.path.exists(folder_path):
+        os.mkdir(folder_path)
+
+    filepath = os.path.join(folder_path, FILENAME)
+    with open(filepath, 'w+') as f:
+        json.dump(chains, f)
