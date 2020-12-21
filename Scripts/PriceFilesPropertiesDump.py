@@ -19,7 +19,8 @@ file_regex:         regex for the structure of the filename. groups sholud be as
                     3. chain ID
                     4. branch ID
                     5. date
-xml_Hirarcy:        the hirarcy of the parents of the individual products.
+xml_Hirarcy_Price:  the hirarcy of the parents of the individual products in Price type files.
+xml_Hirarcy_Promo:  the hirarcy of the parents of the individual products in promo type files.
 '''
 
 
@@ -29,7 +30,8 @@ matrix = {
     'file_base_path': 'CompetitionRegulationsFiles',
     'requests_params': {'code': '', 'date': '', 'filetype': ''},
     'file_regex':  r'/(([a-zA-Z]+)([\d]+)-([\d]+)-([\d]+))-[\d]+\.xml\.gz',
-    'xml_Hirarcy': ('Prices', 'Products', 'Product'),
+    'xml_Hirarcy_Price': ('Prices', 'Products', 'Product'),
+    'xml_Hirarcy_Promo': ('Promos', 'Sales', 'Sale'),
 }
 shufersal = {
     'api': 'http://prices.shufersal.co.il/FileObject/UpdateCategory',
@@ -37,7 +39,8 @@ shufersal = {
     'file_base_path': 'http://pricesprodpublic.blob.core.windows.net',
     'requests_params': {'catID': 0, 'storeId': 0, 'page': 1},
     'file_regex':  r'/(([^/]*)-([^/]*)-([^/]*))\.gz', 
-    'xml_Hirarcy': ('root', 'Items', 'Item'),
+    'xml_Hirarcy_Price': ('root', 'Items', 'Item'),
+    'xml_Hirarcy_Promo': ('root', 'Promotions', 'Promotion'),
 }
 
 chains = {
