@@ -36,11 +36,12 @@ def exec_queries(query_list):
     result = []
     for query in query_list:
         cursor.execute(query)
-        for row in cursor.fetchall():
-            d = collections.OrderedDict()
-            for idx, val in enumerate(cursor.column_names):
-                d[val] = str(row[idx])
-            result.append(d)
+        if cursor.description is not None:
+            for row in cursor.fetchall():
+                d = collections.OrderedDict()
+                for idx, val in enumerate(cursor.column_names):
+                    d[val] = str(row[idx])
+                result.append(d)
     
     cursor.close()
     db.close()
