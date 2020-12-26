@@ -1,8 +1,6 @@
 import json
 import os
 
-
-
 FILENAME = 'PriceFileData.txt'
 PATH = 'data'
 
@@ -38,7 +36,7 @@ shufersal = {
     'file_host': '',
     'file_base_path': 'http://pricesprodpublic.blob.core.windows.net',
     'requests_params': {'catID': 0, 'storeId': 0, 'page': 1},
-    'file_regex':  r'/(([^/]*)-([^/]*)-([^/]*))\.gz', 
+    'file_regex':  r'/(([a-zA-Z]+)([\d]+)-([\d]+)-([\d]+))\.gz', 
     'xml_Hirarcy_Price': ('root', 'Items', 'Item'),
     'xml_Hirarcy_Promo': ('root', 'Promotions', 'Promotion'),
 }
